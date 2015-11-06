@@ -1,0 +1,11 @@
+name: isc-dhcp-server 
+version: 4.3.1-0
+vendor: Woodrow Shen <woodrow.shen@canonical.com>
+summary: Internet Systems Consortium DHCP Distribution 
+description: A dhcpd server
+icon: icon.png 
+
+parts:
+  isc-dhcp-server:
+    plugin: autotools
+    source: lp:ubuntu/wily/isc-dhcp 
