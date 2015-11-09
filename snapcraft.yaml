@@ -4,8 +4,36 @@ vendor: Woodrow Shen <woodrow.shen@canonical.com>
 summary: Internet Systems Consortium DHCP Distribution 
 description: A dhcpd server
 icon: icon.png 
-
-parts:
+services:
   isc-dhcp-server:
+    start: bin/start-dhcpd.sh
+    stop: bin/stop-dhcpd.sh
+    security-override:
+      apparmor: etc/apparmor.d/usr.sbin.dhcpd
+      seccomp: etc/dhcpd.seccomp
+parts:
+  isc-dhcp:
     plugin: autotools
-    source: lp:ubuntu/wily/isc-dhcp 
+    source: lp:ubuntu/wily/isc-dhcp
+    filesets:
+      binaries:
+        - sbin/dhcpd
+      headers:
+        - -include 
+      conf:
+        - etc/dhcpd.conf
+      man:
+        - share/man/man5/dhcpd.conf.5
+        - share/man/man5/dhcpd.leases.5
+        - share/man/man8/dhcpd.8 
+    snap:
+      - $binaries
+      - $headers
+      - $conf
+      - $man
+  dhcpd-script:
+    plugin: copy
+    files:
+      start-dhcpd.sh: bin/start-dhcpd.sh
+      stop-dhcpd.sh: bin/stop-dhcpd.sh
+      isc-dhcp-server: etc/default/isc-dhcp-server
