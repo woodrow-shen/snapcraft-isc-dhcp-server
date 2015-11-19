@@ -1,16 +1,21 @@
-#!bin/sh
+#!/bin/sh
 
 set -e
 set -x
 
 # create necessary directories
 mkdir -p $SNAP_APP_DATA_PATH/etc/apparmor.d/dhcpd.d
+mkdir -p $SNAP_APP_DATA_PATH/etc/default/
+mkdir -p $SNAP_APP_DATA_PATH/etc/dhcp/
 mkdir -p $SNAP_APP_DATA_PATH/var/lib/dhcp
 mkdir -p $SNAP_APP_DATA_PATH/var/run
+mkdir -p $SNAP_APP_DATA_PATH/var/db/
+touch $SNAP_APP_DATA_PATH/var/db/dhcpd.leases
 
 # 
 test -f $SNAP_APP_PATH/sbin/dhcpd || exit 0
 
+cp -n $SNAP_APP_PATH/etc/default/isc-dhcp-server $SNAP_APP_DATA_PATH/etc/default/isc-dhcp-server
 DHCPD_DEFAULT="${DHCPD_DEFAULT:-$SNAP_APP_DATA_PATH/etc/default/isc-dhcp-server}"
 
 # It is not safe to start if we don't have a default configuration...
@@ -27,6 +32,7 @@ fi
 NAME=dhcpd
 DESC="ISC DHCP server"
 # fallback to default config file
+cp -n $SNAP_APP_PATH/etc/dhcpd.conf $SNAP_APP_DATA_PATH/etc/dhcpd.conf
 DHCPD_CONF=${DHCPD_CONF:-$SNAP_APP_PATH/etc/dhcpd.conf}
 
 # try to read pid file name from config file, with fallback to /var/run/dhcpd.pid
@@ -66,7 +72,8 @@ test_config
 log_daemon_msg "Starting $DESC" "$NAME"
 start-stop-daemon --start --quiet --pidfile "$DHCPD_PID" \
 	--exec $SNAP_APP_PATH/sbin/dhcpd -- \
-	-q $OPTIONS -cf "$DHCPD_CONF" -pf "$DHCPD_PID" $INTERFACES
+	-q $OPTIONS -cf "$DHCPD_CONF" -pf "$DHCPD_PID" $INTERFACES \
+	-lf $SNAP_APP_DATA_PATH/var/db/dhcpd.leases
 sleep 2
 
 if check_status -q; then
